@@ -1,0 +1,59 @@
+from tkinter import *
+
+
+class ScrollingFrame(Frame):
+
+    def __init__(self, parent, *args, **kw):
+        """
+        Function defining what's in the class.
+        :return: scrollbar Frame
+        """
+        Frame.__init__(self, parent, *args, **kw)
+
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.scrollbar = Scrollbar(self)
+        self.scrollbar.grid(row=0, column=1, sticky=NS)
+        self.canvas = Canvas(self, yscrollcommand=self.scrollbar.set)
+        self.canvas.grid(row=0, column=0, sticky=NSEW)
+        self.canvas.rowconfigure(0, weight=1)
+        self.canvas.columnconfigure(0, weight=1)
+        self.scrollbar.config(command=self.canvas.yview)
+        self.content = Frame(self.canvas)
+        self.content.grid(sticky=NSEW)
+        self.canvas.create_window(0, 0, anchor=NW, window=self.content)
+        self.bind("<Configure>", self.my_config)
+        self.bind("<Enter>", self.my_enter)
+        self.bind("<Leave>", self.my_leave)
+
+    # Update scrollbar scrollregion after resize
+    def my_config(self, event):
+        self.canvas.config(scrollregion=self.content.bbox("all"))
+
+    # Mouse Enters our frame - bind mouse to it
+    def my_enter(self, event):
+        self.content.bind_all("<MouseWheel>", self.my_on_mouse)
+
+    # Mouse Leaves our frame - unbind the mouse
+    def my_leave(self, event):
+        self.content.unbind_all("<MouseWheel>")
+
+    # Mouse event bound in _enter method
+    def my_on_mouse(self, event):
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+
+# Example code using this class to get ScrollingFrame
+main = Tk()
+main.geometry("800x800")
+
+main.grid_columnconfigure(0, weight=1)
+main.grid_rowconfigure(0, weight=1)
+sf = ScrollingFrame(main)
+sf.grid(sticky=NSEW)
+
+for i in range(0, 50):
+    lbl = Label(sf.content, text="Label " + str(i))
+    lbl.grid(row=i, column=0)
+
+main.mainloop()
